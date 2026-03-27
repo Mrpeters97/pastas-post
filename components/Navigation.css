@@ -17,6 +17,13 @@
     padding-right: env(safe-area-inset-right);
 }
 
+/* Reduce navbar padding in webapp mode (standalone) */
+@media (display-mode: standalone) {
+    .navbar {
+        padding-bottom: 4px;
+    }
+}
+
 .nav-wrapper {
     display: flex;
     width: auto;
