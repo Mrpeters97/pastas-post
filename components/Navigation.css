@@ -21,7 +21,7 @@
     display: flex;
     width: auto;
     max-width: 100%;
-    padding: 12px 40px calc(env(safe-area-inset-bottom) + 8px) 40px;
+    padding: 12px 40px 8px 40px;
     justify-content: center;
     align-items: center;
     gap: 65px;
