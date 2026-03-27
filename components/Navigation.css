@@ -7,7 +7,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
+    padding-bottom: 16px;
     padding-top: 8px;
     width: 100%;
     flex-shrink: 0;
