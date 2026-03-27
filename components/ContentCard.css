@@ -296,6 +296,7 @@
     letter-spacing: -1.32px;
     margin: 0;
     padding: 0;
+    text-transform: none;
 }
 
 .story-text {
@@ -312,6 +313,7 @@
     flex: 1;
     white-space: pre-wrap;
     word-wrap: break-word;
+    text-transform: none;
 }
 
 .story-flip-cta {
