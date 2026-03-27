@@ -1,0 +1,90 @@
+/**
+ * Navigation Component Styles
+ * Mobile-first: Part of flexbox layout, not fixed
+ */
+
+.navbar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
+    padding-top: 8px;
+    width: 100%;
+    flex-shrink: 0;
+    z-index: 100;
+    background-color: #000000;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+
+.nav-wrapper {
+    display: flex;
+    width: auto;
+    max-width: 100%;
+    padding: 12px 40px calc(env(safe-area-inset-bottom) + 8px) 40px;
+    justify-content: center;
+    align-items: center;
+    gap: 65px;
+    
+    border-radius: 25px;
+    background: #21211F;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0px;
+}
+
+.nav-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    transition: all 0.3s ease;
+    color: #FFFFFF;
+}
+
+.nav-button--home.active {
+    color: #97BC87;
+}
+
+.nav-button--postkamer.active {
+    color: #97BC87;
+}
+
+.nav-label {
+    color: #FFFFFF;
+    font-family: "PP Gatwick Jumbo";
+    font-size: 10px;
+    font-weight: 700;
+    font-variant-numeric: lining-nums proportional-nums;
+    font-feature-settings: 'salt' on;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+.nav-button.active .nav-label {
+    color: #97BC87;
+}
+
+.nav-button:not(.active) {
+    opacity: 0.4;
+}
+
+.nav-button:hover:not(.active) {
+    opacity: 0.6;
+}
+
+.nav-button svg {
+    width: 24px;
+    height: 24px;
+}

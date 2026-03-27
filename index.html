@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Pastas Post</title>
+    <link rel="icon" type="image/svg+xml" href="Styling/placeholder_kat.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="components/Navigation.css">
+    <link rel="stylesheet" href="components/ContentCard.css">
+    <link rel="stylesheet" href="components/DateDisplay.css">
+</head>
+<body>
+    <div id="app" class="app">
+        <!-- Logo Header -->
+        <header class="header">
+            <img src="Styling/Logo.svg" alt="Pastas Post Logo" class="logo">
+        </header>
+
+        <!-- Pages Container -->
+        <main class="pages-container">
+            <!-- Home Page -->
+            <div id="home-page" class="page active">
+                <div class="home-content">
+                    <div id="contentCardContainer"></div>
+                    <div id="dateDisplayContainer"></div>
+                </div>
+            </div>
+
+            <!-- Postkamer Page -->
+            <div id="postkamer-page" class="page">
+                <div class="postkamer-content">
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- Calendar items will be inserted here -->
+                    </div>
+                    <div class="dot-pagination" id="dotPagination">
+                        <!-- Dots will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Navigation Component - at the end of flexbox layout -->
+        <nav class="navbar" id="navbar"></nav>
+
+        <!-- Modal for Postkamer detail view -->
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close" id="modalClose">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
+                    </svg>
+                </button>
+                <div class="modal-flip-card-container">
+                    <div class="flip-card" id="modalFlipCard">
+                        <!-- Front: Photo -->
+                        <div class="flip-card-front">
+                            <img id="modalPhotoImage" src="" alt="Post foto" class="modal-photo">
+                            <button class="flip-cta modal-flip-cta" id="modalFlipCTA">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 33 33" fill="none">
+                                  <path d="M28.8748 12.3755H10.3123C6.89505 12.3755 4.12482 15.1457 4.12482 18.563C4.12482 21.9803 6.89506 24.7505 10.3123 24.7505H16.4998M28.8748 12.3755L23.3748 6.87549M28.8748 12.3755L23.3748 17.8755" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <!-- Back: Story -->
+                        <div class="flip-card-back">
+                            <div class="modal-story-card">
+                                <h3 class="story-title">Verhaal</h3>
+                                <p class="story-text" id="modalStoryText"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js" type="module"></script>
+</body>
+</html>
