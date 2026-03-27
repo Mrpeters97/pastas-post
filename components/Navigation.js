@@ -29,12 +29,10 @@ class Navigation {
                 <div class="nav-item">
                     <button class="nav-button nav-button--postkamer" data-page="postkamer">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <rect x="3.5" y="4" width="7" height="7" rx="2.5" stroke="currentColor" stroke-width="1.5"/>
-                            <rect x="3.5" y="14" width="7" height="7" rx="2.5" stroke="currentColor" stroke-width="1.5"/>
-                            <rect x="13.5" y="4" width="7" height="7" rx="2.5" stroke="currentColor" stroke-width="1.5"/>
-                            <rect x="13.5" y="14" width="7" height="7" rx="2.5" stroke="currentColor" stroke-width="1.5"/>
+                          <rect x="2" y="4" width="20" height="16" rx="5" stroke="currentColor" stroke-width="1.5"/>
+                          <path d="M6 10L10.8 13.6C11.5111 14.1333 12.4889 14.1333 13.2 13.6L18 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        <span class="nav-label">Postkamer</span>
+                        <span class="nav-label">postbus</span>
                     </button>
                 </div>
             </nav>
