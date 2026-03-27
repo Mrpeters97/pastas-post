@@ -34,7 +34,7 @@ class ContentCard {
                         <!-- Front (Empty State) -->
                         <div class="card-front empty-state" id="emptyState">
                             <div class="empty-content">
-                                <img src="Styling/placeholderkat.svg" alt="Placeholder" class="empty-placeholder">
+                                <img src="Styling/placeholder.png" alt="Placeholder" class="empty-placeholder">
                                 <p class="empty-text">nog even geduld...<br>pasta's post in onderweg</p>
                             </div>
                         </div>
