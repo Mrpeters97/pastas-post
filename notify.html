@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pushmelding Sturen</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Be Vietnam', sans-serif;
+            background-color: #000000;
+            color: #FFFDA3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            text-align: center;
+            background: #1a1a1a;
+            padding: 40px;
+            border-radius: 12px;
+            border: 2px solid #FFFDA3;
+            max-width: 400px;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        
+        .status {
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: #2a2a2a;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .status.pending {
+            color: #FFD700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .status.success {
+            color: #90EE90;
+            background: rgba(144, 238, 144, 0.1);
+        }
+        
+        .status.error {
+            color: #FF6B6B;
+            background: rgba(255, 107, 107, 0.1);
+        }
+        
+        button {
+            background-color: #FFFDA3;
+            border: 2px solid #000000;
+            border-radius: 8px;
+            padding: 15px 30px;
+            font-family: 'Be Vietnam', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: #000000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        button:hover {
+            background-color: #FFF9C2;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 253, 163, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(255, 253, 163, 0.2);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .info {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #999;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Pushmelding</h1>
+        <div class="status pending" id="status">Klik op de knop om melding te sturen</div>
+        <button id="sendBtn" onclick="sendNotification()">Stuur Melding</button>
+        <div class="info">
+            <p>Dit stuurt naar alle geregistreerde users:</p>
+            <p>"Miaauww! Pasta heeft je een bericht gestuurd"</p>
+        </div>
+    </div>
+
+    <script>
+        // Registreer Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js', { scope: '/' })
+                .then(reg => console.log('✅ SW registered:', reg))
+                .catch(e => console.log('⚠️ SW error:', e));
+        }
+
+        // Vraag toestemming aan
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        async function sendNotification() {
+            const btn = document.getElementById('sendBtn');
+            const status = document.getElementById('status');
+            
+            btn.disabled = true;
+            status.className = 'status pending';
+            status.textContent = '⏳ Melding wordt verzonden...';
+
+            try {
+                console.log('📋 Notification permission:', Notification.permission);
+                
+                // Check support
+                if (!('Notification' in window)) {
+                    throw new Error('Notificaties niet ondersteund');
+                }
+
+                // Check permission
+                if (Notification.permission === 'denied') {
+                    throw new Error('Notificaties zijn uitgeschakeld');
+                }
+
+                // Request permission if needed
+                if (Notification.permission === 'default') {
+                    const permission = await Notification.requestPermission();
+                    if (permission !== 'granted') {
+                        throw new Error('Notificaties toestemming geweigerd');
+                    }
+                }
+
+                // Send notification
+                if ('serviceWorker' in navigator) {
+                    const registration = await navigator.serviceWorker.ready;
+                    console.log('✅ Service Worker ready');
+                    
+                    await registration.showNotification('Miaauww!', {
+                        body: 'Pasta heeft je een bericht gestuurd',
+                        icon: 'https://pastas-post.vercel.app/Styling/Logo.svg',
+                        badge: 'https://pastas-post.vercel.app/Styling/Logo.svg',
+                        tag: 'pasta-notification',
+                        requireInteraction: false,
+                        vibrate: [200, 100, 200],
+                    });
+                } else {
+                    new Notification('Miaauww!', {
+                        body: 'Pasta heeft je een bericht gestuurd',
+                        icon: 'https://pastas-post.vercel.app/Styling/Logo.svg',
+                    });
+                }
+
+                status.className = 'status success';
+                status.textContent = '✅ Melding verzonden!';
+                console.log('✅ Pushmelding verzonden!');
+
+                setTimeout(() => {
+                    btn.disabled = false;
+                    status.className = 'status pending';
+                    status.textContent = 'Melding succesvol verzonden';
+                }, 2000);
+
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = '❌ ' + error.message;
+                console.error('❌ Fout:', error);
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

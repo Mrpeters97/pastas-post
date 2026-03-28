@@ -130,54 +130,97 @@ async function handlePageChange(page, fromNavbar = true) {
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            const registration = await navigator.serviceWorker.register('service-worker.js');
+            const registration = await navigator.serviceWorker.register('service-worker.js', {
+                scope: '/'
+            });
             console.log('✅ Service Worker geregistreerd:', registration);
+            
+            // Force update
+            registration.update();
         } catch (error) {
             console.warn('⚠️ Service Worker registratie mislukt:', error);
         }
+    } else {
+        console.warn('⚠️ Service Worker niet ondersteund');
     }
 }
 
 function setupPushNotifications() {
-    // Request notification permission if not already granted
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-    }
-    
     // Make sendNotification globally available for manual triggering
     window.sendNotification = sendPushNotification;
-    console.log('✅ Pushmelding gereed. Typ: sendNotification() in console om melding te sturen');
+    
+    // Request notification permission
+    if ('Notification' in window) {
+        console.log('📋 Notification permission status:', Notification.permission);
+        
+        if (Notification.permission === 'default') {
+            Notification.requestPermission()
+                .then(permission => {
+                    console.log('📋 Permission response:', permission);
+                })
+                .catch(err => {
+                    console.error('⚠️ Permission request failed:', err);
+                });
+        }
+    } else {
+        console.warn('⚠️ Notifications niet ondersteund');
+    }
 }
 
 async function sendPushNotification() {
     try {
-        // Check if Service Worker is ready
+        console.log('🔔 Notification permission:', Notification.permission);
+        
+        // Check if notifications are supported
+        if (!('Notification' in window)) {
+            throw new Error('Notificaties niet ondersteund op dit apparaat');
+        }
+        
+        // Check permission
+        if (Notification.permission === 'denied') {
+            throw new Error('Notificaties zijn uitgeschakeld. Schakel ze in in Instellingen.');
+        }
+        
+        // Request permission if needed
+        if (Notification.permission === 'default') {
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                throw new Error('Notificaties toestemming geweigerd');
+            }
+        }
+        
+        // Get Service Worker registration
+        let registration = null;
         if ('serviceWorker' in navigator && 'PushManager' in window) {
-            const registration = await navigator.serviceWorker.ready;
-            
-            // Show notification
+            registration = await navigator.serviceWorker.ready;
+            console.log('✅ Service Worker ready:', registration);
+        }
+        
+        // Show notification
+        if (registration) {
+            console.log('📤 Sturen via Service Worker...');
             await registration.showNotification('Miaauww!', {
                 body: 'Pasta heeft je een bericht gestuurd',
-                icon: 'Styling/Logo.svg',
-                badge: 'Styling/Logo.svg',
+                icon: 'https://pastas-post.vercel.app/Styling/Logo.svg',
+                badge: 'https://pastas-post.vercel.app/Styling/Logo.svg',
                 tag: 'pasta-notification',
                 requireInteraction: false,
                 vibrate: [200, 100, 200],
             });
-            
-            console.log('✅ Pushmelding verzonden!');
         } else {
             // Fallback to simple Notification API
+            console.log('📤 Sturen via Notification API (fallback)...');
             new Notification('Miaauww!', {
                 body: 'Pasta heeft je een bericht gestuurd',
-                icon: 'Styling/Logo.svg',
+                icon: 'https://pastas-post.vercel.app/Styling/Logo.svg',
             });
-            
-            console.log('✅ Notificatie verzonden (fallback modus)');
         }
+        
+        console.log('✅ Pushmelding verzonden!');
+        
     } catch (error) {
         console.error('❌ Fout bij verzenden notificatie:', error);
-        alert('❌ Fout bij verzenden notificatie: ' + error.message);
+        console.error('Details:', error.message);
     }
 }
 
