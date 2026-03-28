@@ -56,6 +56,12 @@ async function initializeApp() {
     // Initialize Date Display Component
     dateDisplayComponent = new DateDisplay('dateDisplayContainer');
     
+    // Register Service Worker for push notifications
+    registerServiceWorker();
+    
+    // Setup push notifications
+    setupPushNotifications();
+    
     // Load stored posts from manifest.json
     await loadPostsFromStorage();
     
@@ -116,6 +122,62 @@ async function handlePageChange(page, fromNavbar = true) {
     } else if (state.currentPage === 'postkamer') {
         // Regenerate calendar when coming back to postkamer
         await generateCalendarGrid();
+    }
+}
+
+// ========== PUSH NOTIFICATIONS ==========
+
+async function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        try {
+            const registration = await navigator.serviceWorker.register('service-worker.js');
+            console.log('✅ Service Worker geregistreerd:', registration);
+        } catch (error) {
+            console.warn('⚠️ Service Worker registratie mislukt:', error);
+        }
+    }
+}
+
+function setupPushNotifications() {
+    // Request notification permission if not already granted
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+    
+    // Make sendNotification globally available for manual triggering
+    window.sendNotification = sendPushNotification;
+    console.log('✅ Pushmelding gereed. Typ: sendNotification() in console om melding te sturen');
+}
+
+async function sendPushNotification() {
+    try {
+        // Check if Service Worker is ready
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            const registration = await navigator.serviceWorker.ready;
+            
+            // Show notification
+            await registration.showNotification('Miaauww!', {
+                body: 'Pasta heeft je een bericht gestuurd',
+                icon: 'Styling/Logo.svg',
+                badge: 'Styling/Logo.svg',
+                tag: 'pasta-notification',
+                requireInteraction: false,
+                vibrate: [200, 100, 200],
+            });
+            
+            console.log('✅ Pushmelding verzonden!');
+        } else {
+            // Fallback to simple Notification API
+            new Notification('Miaauww!', {
+                body: 'Pasta heeft je een bericht gestuurd',
+                icon: 'Styling/Logo.svg',
+            });
+            
+            console.log('✅ Notificatie verzonden (fallback modus)');
+        }
+    } catch (error) {
+        console.error('❌ Fout bij verzenden notificatie:', error);
+        alert('❌ Fout bij verzenden notificatie: ' + error.message);
     }
 }
 
