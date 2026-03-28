@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Pushmelding</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #000000;
+            color: #FFFDA3;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #FFFDA3;
+            padding-bottom: 10px;
+        }
+        
+        .section {
+            background: #1a1a1a;
+            border: 1px solid #FFFDA3;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+        
+        .log {
+            background: #000000;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            word-break: break-all;
+        }
+        
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #FFFDA3;
+            padding-left: 8px;
+        }
+        
+        .log-entry.error {
+            border-left-color: #FF6B6B;
+            color: #FF6B6B;
+        }
+        
+        .log-entry.success {
+            border-left-color: #90EE90;
+            color: #90EE90;
+        }
+        
+        .log-entry.info {
+            border-left-color: #FFD700;
+            color: #FFD700;
+        }
+        
+        button {
+            background-color: #FFFDA3;
+            border: 2px solid #000000;
+            border-radius: 6px;
+            padding: 10px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #000000;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background-color: #FFF9C2;
+        }
+        
+        button:active {
+            transform: scale(0.95);
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .status.pending {
+            background: rgba(255, 215, 0, 0.2);
+            color: #FFD700;
+        }
+        
+        .status.ok {
+            background: rgba(144, 238, 144, 0.2);
+            color: #90EE90;
+        }
+        
+        .status.error {
+            background: rgba(255, 107, 107, 0.2);
+            color: #FF6B6B;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug: Pushmelding Diagnostiek</h1>
+        
+        <div class="section">
+            <div class="section-title">📋 Browser Capabilities</div>
+            <div id="capabilities"></div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">🔔 Notification Status</div>
+            <div id="notificationStatus"></div>
+            <button onclick="requestNotificationPermission()">Vraag Toestemming Aan</button>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">🛠️ Service Worker</div>
+            <div id="swStatus"></div>
+            <button onclick="registerSW()">Registreer Service Worker</button>
+            <button onclick="unregisterSW()">Unregister</button>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">🚀 Test Melding</div>
+            <button onclick="testNotification()">Test Lokale Notificatie</button>
+            <button onclick="testSWNotification()">Test via Service Worker</button>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">📜 Console Log</div>
+            <div id="logs" class="log"></div>
+            <button onclick="clearLogs()">Log Wissen</button>
+        </div>
+    </div>
+
+    <script>
+        // Override console.log to capture everything
+        const logs = [];
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addLog(message, type = 'info') {
+            logs.push({ message, type, time: new Date().toLocaleTimeString() });
+            updateLogs();
+            originalLog(`[${type.toUpperCase()}]`, message);
+        }
+        
+        console.log = function(...args) {
+            addLog(args.join(' '), 'info');
+        };
+        
+        console.error = function(...args) {
+            addLog(args.join(' '), 'error');
+        };
+        
+        console.warn = function(...args) {
+            addLog(args.join(' '), 'warn');
+        };
+        
+        function updateLogs() {
+            const logsDiv = document.getElementById('logs');
+            logsDiv.innerHTML = logs.map(log => 
+                `<div class="log-entry ${log.type}">[${log.time}] ${log.message}</div>`
+            ).join('');
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+        
+        function clearLogs() {
+            logs.length = 0;
+            updateLogs();
+        }
+        
+        // Check capabilities
+        function checkCapabilities() {
+            const capabilities = document.getElementById('capabilities');
+            const checks = [
+                { name: 'ServiceWorker', ok: 'serviceWorker' in navigator },
+                { name: 'Notifications', ok: 'Notification' in window },
+                { name: 'PushManager', ok: 'PushManager' in window },
+                { name: 'HTTPS', ok: location.protocol === 'https:' },
+                { name: 'Vibration', ok: 'vibrate' in navigator },
+            ];
+            
+            capabilities.innerHTML = checks.map(c => `
+                <div class="status ${c.ok ? 'ok' : 'error'}">
+                    ${c.ok ? '✅' : '❌'} ${c.name}
+                </div>
+            `).join('');
+            
+            console.log('Capabilities checked');
+        }
+        
+        // Check notification status
+        async function checkNotificationStatus() {
+            const div = document.getElementById('notificationStatus');
+            const permission = 'Notification' in window ? Notification.permission : 'N/A';
+            
+            div.innerHTML = `<div class="status pending">Permission: ${permission}</div>`;
+            console.log('Notification permission:', permission);
+        }
+        
+        // Request notification permission
+        async function requestNotificationPermission() {
+            if (!('Notification' in window)) {
+                console.error('Notifications nicht unterstützt');
+                return;
+            }
+            
+            try {
+                const result = await Notification.requestPermission();
+                console.log('Permission request result:', result);
+                await checkNotificationStatus();
+            } catch (error) {
+                console.error('Permission request failed:', error);
+            }
+        }
+        
+        // Register Service Worker
+        async function registerSW() {
+            const div = document.getElementById('swStatus');
+            
+            if (!('serviceWorker' in navigator)) {
+                console.error('Service Worker nicht unterstützt');
+                div.innerHTML = '<div class="status error">❌ Service Worker nicht unterstützt</div>';
+                return;
+            }
+            
+            try {
+                console.log('Registriere Service Worker...');
+                const reg = await navigator.serviceWorker.register('service-worker.js', { scope: '/' });
+                console.log('✅ Service Worker registriert:', reg);
+                
+                div.innerHTML = `
+                    <div class="status ok">✅ Service Worker aktiv</div>
+                    <div style="font-size: 11px; margin-top: 5px;">Scope: ${reg.scope}</div>
+                `;
+            } catch (error) {
+                console.error('SW registration failed:', error);
+                div.innerHTML = `<div class="status error">❌ ${error.message}</div>`;
+            }
+        }
+        
+        // Unregister Service Worker
+        async function unregisterSW() {
+            try {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let reg of registrations) {
+                    await reg.unregister();
+                }
+                console.log('Service Worker unregistered');
+                document.getElementById('swStatus').innerHTML = '<div class="status">Service Worker unregistered</div>';
+            } catch (error) {
+                console.error('Unregister failed:', error);
+            }
+        }
+        
+        // Test local notification
+        async function testNotification() {
+            if (!('Notification' in window)) {
+                console.error('Notifications nicht unterstützt');
+                return;
+            }
+            
+            if (Notification.permission !== 'granted') {
+                console.warn('Permission not granted');
+                return;
+            }
+            
+            try {
+                console.log('Sende lokale Notifikation...');
+                new Notification('🔔 Test Melding', {
+                    body: 'Dit is een test notificatie',
+                    icon: 'https://pastas-post.vercel.app/Styling/Logo.svg',
+                });
+                console.log('✅ Notifikation gesendet');
+            } catch (error) {
+                console.error('Notification failed:', error);
+            }
+        }
+        
+        // Test Service Worker notification
+        async function testSWNotification() {
+            try {
+                if (!('serviceWorker' in navigator)) {
+                    console.error('Service Worker nicht unterstützt');
+                    return;
+                }
+                
+                console.log('Warte auf Service Worker...');
+                const reg = await navigator.serviceWorker.ready;
+                console.log('Service Worker bereit');
+                
+                await reg.showNotification('Miaauww!', {
+                    body: 'Pasta heeft je een bericht gestuurd',
+                    icon: 'https://pastas-post.vercel.app/Styling/Logo.svg',
+                    badge: 'https://pastas-post.vercel.app/Styling/Logo.svg',
+                    tag: 'pasta-notification',
+                    vibrate: [200, 100, 200],
+                });
+                
+                console.log('✅ Notifikation via Service Worker gesendet');
+            } catch (error) {
+                console.error('SW notification failed:', error);
+            }
+        }
+        
+        // Initial checks
+        window.addEventListener('load', () => {
+            console.log('=== Pastas Post - Debug Session ===');
+            console.log('URL:', location.href);
+            console.log('User Agent:', navigator.userAgent);
+            checkCapabilities();
+            checkNotificationStatus();
+        });
+    </script>
+</body>
+</html>
