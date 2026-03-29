@@ -506,44 +506,6 @@ body {
     opacity: 1;
 }
 
-/* In-App Notification Banner */
-.in-app-notification {
-    position: fixed;
-    top: 80px;
-    left: 50%;
-    transform: translateX(-50%) translateY(-150px);
-    background: linear-gradient(135deg, #FFFDA3, #FFE066);
-    border: 2px solid #000000;
-    border-radius: 12px;
-    padding: 16px 20px;
-    z-index: 9999;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-    transition: transform 0.3s ease;
-    max-width: 90%;
-    width: calc(100% - 40px);
-}
-
-.in-app-notification.show {
-    transform: translateX(-50%) translateY(0);
-}
-
-.notification-content {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-family: 'Be Vietnam', sans-serif;
-    font-weight: 600;
-    color: #000000;
-}
-
-.notification-icon {
-    font-size: 24px;
-}
-
-.notification-text {
-    font-size: 14px;
-}
-
 /* Modal */
 .modal {
     position: fixed;

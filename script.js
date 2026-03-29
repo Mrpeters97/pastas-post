@@ -194,50 +194,69 @@ async function checkForNotifications() {
             notificationState.lastTimestamp = data.timestamp;
             
             console.log('🔔 Nieuwe melding ontvangen:', data.message);
-            showInAppNotification(data.message);
             
-            // Send Web Push notification if supported
-            if ('serviceWorker' in navigator) {
-                try {
-                    const reg = await navigator.serviceWorker.ready;
-                    await reg.showNotification('Miaauww!', {
-                        body: data.message,
-                        icon: 'https://pastas-post.vercel.app/Styling/Logo.svg',
-                        badge: 'https://pastas-post.vercel.app/Styling/Logo.svg',
-                        tag: 'pasta-notification',
-                        vibrate: [200, 100, 200],
-                    });
-                } catch (error) {
-                    console.warn('Web Push notification mislukt:', error);
-                }
-            }
+            // Send Web Push notification (native OS notification)
+            await showNativeNotification(data.message);
         }
     } catch (error) {
         console.warn('Fout bij laden notifications.json:', error);
     }
 }
 
-function showInAppNotification(message) {
-    // Create notification banner
-    const banner = document.createElement('div');
-    banner.className = 'in-app-notification';
-    banner.innerHTML = `
-        <div class="notification-content">
-            <span class="notification-icon">🔔</span>
-            <span class="notification-text">${message}</span>
-        </div>
-    `;
-    
-    document.body.appendChild(banner);
-    
-    // Animate in
-    setTimeout(() => banner.classList.add('show'), 10);
-    
-    // Remove after 5 seconds
-    setTimeout(() => {
-        banner.classList.remove('show');
-        setTimeout(() => banner.remove(), 300);
-    }, 5000);
+async function showNativeNotification(message) {
+    try {
+        // Check if notifications are supported
+        if (!('Notification' in window)) {
+            console.warn('⚠️ Notifications niet ondersteund');
+            return;
+        }
+        
+        // Check permission
+        if (Notification.permission === 'denied') {
+            console.warn('⚠️ Notificaties zijn uitgeschakeld');
+            return;
+        }
+        
+        // Request permission if needed
+        if (Notification.permission === 'default') {
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                console.warn('⚠️ Notificaties toestemming geweigerd');
+                return;
+            }
+        }
+        
+        // Show native notification via Service Worker
+        if ('serviceWorker' in navigator) {
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                await registration.showNotification('Miaauww! 🐱', {
+                    body: message,
+                    icon: 'https://pastas-post.vercel.app/Styling/Logo.svg',
+                    badge: 'https://pastas-post.vercel.app/Styling/Logo.svg',
+                    tag: 'pasta-post-notification',
+                    requireInteraction: false,
+                    vibrate: [200, 100, 200],
+                });
+                console.log('✅ Native notification verzonden');
+            } catch (error) {
+                console.warn('Service Worker notification failed:', error);
+                // Fallback to simple notification
+                new Notification('Miaauww! 🐱', {
+                    body: message,
+                    icon: 'https://pastas-post.vercel.app/Styling/Logo.svg',
+                });
+            }
+        } else {
+            // Simple fallback without Service Worker
+            new Notification('Miaauww! 🐱', {
+                body: message,
+                icon: 'https://pastas-post.vercel.app/Styling/Logo.svg',
+            });
+        }
+    } catch (error) {
+        console.error('❌ Fout bij native notification:', error);
+    }
 }
 
 // ========== POST STORAGE ==========
