@@ -127,6 +127,11 @@ async function handlePageChange(page, fromNavbar = true) {
 
 // ========== PUSH NOTIFICATIONS ==========
 
+let notificationState = {
+    lastTimestamp: 0,
+    pollingInterval: null,
+};
+
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
@@ -146,9 +151,6 @@ async function registerServiceWorker() {
 }
 
 function setupPushNotifications() {
-    // Make sendNotification globally available for manual triggering
-    window.sendNotification = sendPushNotification;
-    
     // Request notification permission
     if ('Notification' in window) {
         console.log('📋 Notification permission status:', Notification.permission);
@@ -165,63 +167,77 @@ function setupPushNotifications() {
     } else {
         console.warn('⚠️ Notifications niet ondersteund');
     }
+    
+    // Start polling for notifications
+    startNotificationPolling();
 }
 
-async function sendPushNotification() {
+function startNotificationPolling() {
+    // Poll every 5 seconds
+    notificationState.pollingInterval = setInterval(() => {
+        checkForNotifications();
+    }, 5000);
+    
+    // Also check immediately
+    checkForNotifications();
+    
+    console.log('✅ Notification polling gestart');
+}
+
+async function checkForNotifications() {
     try {
-        console.log('🔔 Notification permission:', Notification.permission);
+        const response = await fetch('notifications.json?t=' + Date.now());
+        const data = await response.json();
         
-        // Check if notifications are supported
-        if (!('Notification' in window)) {
-            throw new Error('Notificaties niet ondersteund op dit apparaat');
-        }
-        
-        // Check permission
-        if (Notification.permission === 'denied') {
-            throw new Error('Notificaties zijn uitgeschakeld. Schakel ze in in Instellingen.');
-        }
-        
-        // Request permission if needed
-        if (Notification.permission === 'default') {
-            const permission = await Notification.requestPermission();
-            if (permission !== 'granted') {
-                throw new Error('Notificaties toestemming geweigerd');
+        // Check if there's a new notification
+        if (data.pending && data.timestamp > notificationState.lastTimestamp) {
+            notificationState.lastTimestamp = data.timestamp;
+            
+            console.log('🔔 Nieuwe melding ontvangen:', data.message);
+            showInAppNotification(data.message);
+            
+            // Send Web Push notification if supported
+            if ('serviceWorker' in navigator) {
+                try {
+                    const reg = await navigator.serviceWorker.ready;
+                    await reg.showNotification('Miaauww!', {
+                        body: data.message,
+                        icon: 'https://pastas-post.vercel.app/Styling/Logo.svg',
+                        badge: 'https://pastas-post.vercel.app/Styling/Logo.svg',
+                        tag: 'pasta-notification',
+                        vibrate: [200, 100, 200],
+                    });
+                } catch (error) {
+                    console.warn('Web Push notification mislukt:', error);
+                }
             }
         }
-        
-        // Get Service Worker registration
-        let registration = null;
-        if ('serviceWorker' in navigator && 'PushManager' in window) {
-            registration = await navigator.serviceWorker.ready;
-            console.log('✅ Service Worker ready:', registration);
-        }
-        
-        // Show notification
-        if (registration) {
-            console.log('📤 Sturen via Service Worker...');
-            await registration.showNotification('Miaauww!', {
-                body: 'Pasta heeft je een bericht gestuurd',
-                icon: 'https://pastas-post.vercel.app/Styling/Logo.svg',
-                badge: 'https://pastas-post.vercel.app/Styling/Logo.svg',
-                tag: 'pasta-notification',
-                requireInteraction: false,
-                vibrate: [200, 100, 200],
-            });
-        } else {
-            // Fallback to simple Notification API
-            console.log('📤 Sturen via Notification API (fallback)...');
-            new Notification('Miaauww!', {
-                body: 'Pasta heeft je een bericht gestuurd',
-                icon: 'https://pastas-post.vercel.app/Styling/Logo.svg',
-            });
-        }
-        
-        console.log('✅ Pushmelding verzonden!');
-        
     } catch (error) {
-        console.error('❌ Fout bij verzenden notificatie:', error);
-        console.error('Details:', error.message);
+        console.warn('Fout bij laden notifications.json:', error);
     }
+}
+
+function showInAppNotification(message) {
+    // Create notification banner
+    const banner = document.createElement('div');
+    banner.className = 'in-app-notification';
+    banner.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">🔔</span>
+            <span class="notification-text">${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(banner);
+    
+    // Animate in
+    setTimeout(() => banner.classList.add('show'), 10);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+        banner.classList.remove('show');
+        setTimeout(() => banner.remove(), 300);
+    }, 5000);
 }
 
 // ========== POST STORAGE ==========

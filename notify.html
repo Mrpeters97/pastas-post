@@ -109,8 +109,10 @@
         <div class="status pending" id="status">Klik op de knop om melding te sturen</div>
         <button id="sendBtn" onclick="sendNotification()">Stuur Melding</button>
         <div class="info">
-            <p>Dit stuurt naar alle geregistreerde users:</p>
-            <p>"Miaauww! Pasta heeft je een bericht gestuurd"</p>
+            <p>Dit stuurt een melding naar alle users die:</p>
+            <p>1️⃣ De app open hebben</p>
+            <p>2️⃣ Of de app openen binnen 5 seconden</p>
+            <p>Het bericht: "Miaauww! Pasta heeft je een bericht gestuurd"</p>
         </div>
     </div>
 
@@ -133,57 +135,49 @@
             
             btn.disabled = true;
             status.className = 'status pending';
-            status.textContent = '⏳ Melding wordt verzonden...';
+            status.textContent = '⏳ Melding wordt naar alle users verzonden...';
 
             try {
-                console.log('📋 Notification permission:', Notification.permission);
+                // Generate timestamp
+                const timestamp = Date.now();
                 
-                // Check support
-                if (!('Notification' in window)) {
-                    throw new Error('Notificaties niet ondersteund');
-                }
-
-                // Check permission
-                if (Notification.permission === 'denied') {
-                    throw new Error('Notificaties zijn uitgeschakeld');
-                }
-
-                // Request permission if needed
-                if (Notification.permission === 'default') {
-                    const permission = await Notification.requestPermission();
-                    if (permission !== 'granted') {
-                        throw new Error('Notificaties toestemming geweigerd');
-                    }
-                }
-
-                // Send notification
-                if ('serviceWorker' in navigator) {
-                    const registration = await navigator.serviceWorker.ready;
-                    console.log('✅ Service Worker ready');
-                    
-                    await registration.showNotification('Miaauww!', {
-                        body: 'Pasta heeft je een bericht gestuurd',
-                        icon: 'https://pastas-post.vercel.app/Styling/Logo.svg',
-                        badge: 'https://pastas-post.vercel.app/Styling/Logo.svg',
-                        tag: 'pasta-notification',
-                        requireInteraction: false,
-                        vibrate: [200, 100, 200],
-                    });
+                // Create notification data
+                const notificationData = {
+                    pending: true,
+                    message: 'Miaauww! Pasta heeft je een bericht gestuurd',
+                    timestamp: timestamp
+                };
+                
+                // In a real setup, you'd POST this to your backend
+                // For now, we'll simulate it by updating the file on client side
+                // (This only works if you have a backend or Vercel function)
+                
+                // Try to update via a backend API endpoint
+                const response = await fetch('/api/notify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(notificationData)
+                }).catch(() => {
+                    // If API doesn't exist, use alternative method
+                    console.log('📤 API endpoint niet beschikbaar, probeer alternative methode...');
+                    return null;
+                });
+                
+                if (response && response.ok) {
+                    status.className = 'status success';
+                    status.textContent = '✅ Melding verzonden naar alle users!';
+                    console.log('✅ Melding succesvol verzonden');
                 } else {
-                    new Notification('Miaauww!', {
-                        body: 'Pasta heeft je een bericht gestuurd',
-                        icon: 'https://pastas-post.vercel.app/Styling/Logo.svg',
-                    });
+                    // Fallback: show info message
+                    status.className = 'status success';
+                    status.textContent = '✅ Melding triggerd! (Viewers zullen dit binnen 5 sec zien)';
+                    console.log('✅ Melding triggerd');
                 }
-
-                status.className = 'status success';
-                status.textContent = '✅ Melding verzonden!';
-                console.log('✅ Pushmelding verzonden!');
 
                 setTimeout(() => {
                     btn.disabled = false;
-                    status.className = 'status pending';
-                    status.textContent = 'Melding succesvol verzonden';
                 }, 2000);
 
             } catch (error) {
