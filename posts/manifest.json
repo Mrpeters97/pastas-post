@@ -44,6 +44,11 @@
       "date": "2026-04-01",
       "photo": "posts/2026-04-01/photo.jpg",
       "story": "posts/2026-04-01/story.txt"
+    },
+    {
+      "date": "2026-04-02",
+      "photo": "posts/2026-04-02/photo.jpg",
+      "story": "posts/2026-04-02/story.txt"
     }
   ]
 }
