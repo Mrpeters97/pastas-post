@@ -270,7 +270,8 @@ async function loadPostsFromStorage() {
     }
     
     try {
-        const response = await fetch('posts/manifest.json');
+        // Always fetch fresh manifest (no cache) by adding timestamp
+        const response = await fetch(`posts/manifest.json?t=${Date.now()}`);
         const data = await response.json();
         
         // Build posts object from manifest
@@ -296,6 +297,14 @@ async function loadPostsFromStorage() {
                 const photoResponse = await fetch(entry.photo);
                 const storyResponse = await fetch(entry.story);
                 const titleResponse = await fetch(entry.title || `posts/${entry.date}/title.txt`);
+                
+                // Debug logging
+                if (entry.date === '2026-04-03') {
+                    console.log(`[DEBUG] Post ${entry.date}:`);
+                    console.log(`  Photo: ${entry.photo} - Status: ${photoResponse.status}`);
+                    console.log(`  Story: ${entry.story} - Status: ${storyResponse.status}`);
+                    console.log(`  Title: ${entry.title} - Status: ${titleResponse.status}`);
+                }
                 
                 if (photoResponse.ok && storyResponse.ok) {
                     const photoBlob = await photoResponse.blob();
